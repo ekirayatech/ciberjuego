@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fortaleza Digital — juego de ataque y defensa de cuentas</title>
+<style>
+  :root{
+    --bg:#F6F1E7; --card:#FFFFFF; --ink:#233029; --muted:#6B7A72;
+    --accent:#2F6B52; --accent-soft:#E3EFE7; --danger:#B4432F; --danger-soft:#FBE8E2;
+    --warn:#B3831A; --warn-soft:#FBF1DC; --line:#E2D8C6; --shadow:0 2px 10px rgba(35,48,41,.07);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font:16px/1.55 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+    padding-bottom:4rem;
+  }
+  header{
+    background:var(--accent); color:#fff; padding:1rem 1.25rem;
+    display:flex; flex-wrap:wrap; gap:.75rem 1.5rem; align-items:center; justify-content:space-between;
+  }
+  header h1{font-size:1.25rem;margin:0;font-weight:650;letter-spacing:.01em}
+  header .tag{font-size:.82rem;opacity:.9}
+  .banner{
+    background:var(--warn-soft); border-bottom:1px solid var(--line);
+    padding:.6rem 1.25rem; font-size:.86rem; color:#6a4f10;
+  }
+  .wrap{max-width:60rem;margin:0 auto;padding:1.25rem}
+  .steps{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1.25rem}
+  .steps button{
+    font:inherit;font-size:.83rem;padding:.4rem .75rem;border-radius:999px;cursor:pointer;
+    border:1px solid var(--line);background:#fff;color:var(--muted);
+  }
+  .steps button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .steps button.done{color:var(--accent);border-color:var(--accent)}
+  .steps button:disabled{opacity:.45;cursor:not-allowed}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1.5rem;margin-bottom:1.25rem}
+  .card > h2{margin:0 0 .25rem;font-size:1.35rem}
+  .card > .sub{margin:0 0 1.25rem;color:var(--muted);font-size:.92rem}
+  label{display:block;font-size:.85rem;font-weight:600;margin:.85rem 0 .3rem}
+  input[type=text],input[type=password],select,textarea{
+    width:100%;font:inherit;padding:.6rem .7rem;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);
+  }
+  textarea{resize:vertical;min-height:4.2rem}
+  input:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+  .grid{display:grid;gap:0 1rem}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(13rem,1fr))}
+  .row{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-top:1.4rem}
+  .btn{
+    font:inherit;font-weight:600;padding:.65rem 1.15rem;border-radius:10px;cursor:pointer;
+    border:1px solid var(--accent);background:var(--accent);color:#fff;
+  }
+  .btn.ghost{background:#fff;color:var(--accent)}
+  .btn.danger{background:#fff;color:var(--danger);border-color:var(--danger)}
+  .check{display:flex;gap:.6rem;align-items:flex-start;padding:.6rem .75rem;border:1px solid var(--line);border-radius:10px;margin-top:.5rem;background:#FCFBF7}
+  .check input{width:1.15rem;height:1.15rem;margin-top:.15rem;accent-color:var(--accent);flex:none}
+  .check span{font-size:.9rem}
+  .check small{display:block;color:var(--muted);font-weight:400}
+  .meter{height:.7rem;border-radius:999px;background:#EDE6D8;overflow:hidden;margin-top:.5rem}
+  .meter i{display:block;height:100%;width:0;background:var(--danger);transition:width .25s,background .25s}
+  .hint{font-size:.84rem;color:var(--muted);margin-top:.35rem}
+  .vec{display:grid;grid-template-columns:1fr auto;gap:.75rem;align-items:center;padding:.9rem;border:1px solid var(--line);border-radius:12px;margin-top:.7rem;background:#fff}
+  .vec h3{margin:0;font-size:1rem}
+  .vec p{margin:.2rem 0 0;font-size:.86rem;color:var(--muted)}
+  .vec .btn{white-space:nowrap}
+  .log li{margin-bottom:.85rem;font-size:.92rem}
+  .ok{color:var(--accent);font-weight:700}
+  .ko{color:var(--danger);font-weight:700}
+  .pill{display:inline-block;font-size:.76rem;font-weight:700;padding:.16rem .55rem;border-radius:999px;letter-spacing:.02em}
+  .pill.g{background:var(--accent-soft);color:var(--accent)}
+  .pill.r{background:var(--danger-soft);color:var(--danger)}
+  .callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.85rem 1rem;border-radius:0 10px 10px 0;font-size:.9rem;margin-top:1.1rem}
+  .callout.r{border-color:var(--danger);background:var(--danger-soft)}
+  table{width:100%;border-collapse:collapse;font-size:.9rem;margin-top:.75rem}
+  th,td{text-align:left;padding:.55rem .6rem;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  .score{display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1rem}
+  .score div{flex:1;min-width:11rem;padding:1rem;border-radius:12px;border:1px solid var(--line);background:#FCFBF7}
+  .score b{display:block;font-size:2rem;line-height:1.1}
+  .mail{border:1px solid var(--line);border-radius:12px;padding:0;overflow:hidden;margin-top:.9rem;background:#fff}
+  .mail .mhead{background:#F3EEE2;padding:.6rem .85rem;font-size:.84rem;border-bottom:1px solid var(--line)}
+  .mail .mbody{padding:.85rem;font-size:.9rem;white-space:pre-wrap}
+  .mail.pick{cursor:pointer;transition:border-color .15s,box-shadow .15s}
+  .mail.pick:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+  a.fake{color:#1155CC;text-decoration:underline}
+  #printRoot{display:none}
+  @media print{
+    body{background:#fff;padding:0}
+    header,.banner,.wrap,#printBtns,.steps{display:none!important}
+    #printRoot{display:block}
+    #printRoot h2{border-bottom:2px solid #000;padding-bottom:.3rem}
+    #printRoot table{font-size:11pt}
+    #printRoot .ficha{border:1px solid #000;padding:.5rem;margin:.4rem 0;min-height:2.4rem}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Fortaleza Digital</h1>
+    <div class="tag">Juego de roles: un atacante, un defensor, una cuenta simulada</div>
+  </div>
+  <div class="tag" id="rosterTag"></div>
+</header>
+
+<div class="banner"><b>Todo es simulado.</b> Usa únicamente el personaje inventado por ti. Nunca escribas tus contraseñas reales, tu correo real ni intentes entrar en una cuenta que no sea tuya.</div>
+
+<main class="wrap" id="app"></main>
+
+<div class="wrap" id="printBtns">
+  <button class="btn ghost" onclick="imprimir()">Imprimir ficha de la partida</button>
+  <button class="btn danger" onclick="reiniciar()">Borrar partida</button>
+</div>
+
+<div id="printRoot"></div>
+
+<script>
+"use strict";
+
+/* ---------- estado ---------- */
+const KEY = "fortaleza-digital-v2";
+const vacio = () => ({
+  jugador1: "", jugador2: "", mano: 1, rolDef: 1,
+  totales: { 1: 0, 2: 0 },
+  p: { nombre: "", edad: "13", ciudad: "", colegio: "", hobby: "", mascota: "", amigo: "", nacimiento: "" },
+  c: { pwd: "", q1: "", q2: "", q3: "", correo: "", dosfa: false, reuse: false, gestor: false, publico: false, cerro: true },
+  posts: ["", "", "", ""],
+  intentos: [], puntosA: 0, puntosB: 0, phish: null, hackeado: false, paso: "inicio"
+});
+let S = cargar();
+function cargar(){ try{ const r=localStorage.getItem(KEY); return r?Object.assign(vacio(),JSON.parse(r)):vacio(); }catch(e){ return vacio(); } }
+function salvar(){ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} }
+
+let pantalla = S.paso || "inicio";
+const puedeVer = k => {
+  if (k === "cuenta") return !!S.p.nombre;
+  if (k === "muro" || k === "ataque") return !!S.p.nombre && S.c.pwd.length > 0;
+  if (k === "fin") return S.intentos.length >= 3 || S.hackeado;
+  return true;
+};
+
+/* ---------- utilidades ---------- */
+const nm = s => (s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
+const esc = s => String(s??"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+const DICC = ["contrasena","password","123456","12345678","1234","1111","qwerty","azerty","admin","usuario","invite","hello","julio","agosto","escuela","colegio","amigo","amor","gato","perro","futbol","video","juego","minecraft","fortnite","twitch","nike","adidas","colombia","bogota","medallo","sexymama","blink182","abc123","123321","0000","9876","corazun","verano","navidad","musica","pelicula"];
+const SEQ = ["1234","2345","3456","4567","5678","6789","0123","abcd","bcde","qwer","asdf","zxcv","asdfg"];
+
+function clases(p){
+  let n = 0;
+  if(/[a-zà-öø-ÿ]/.test(p)) n++;
+  if(/[A-ZÀ-ÖØ-Þ]/.test(p)) n++;
+  if(/[0-9]/.test(p)) n++;
+  if(/[^A-Za-z0-9]/.test(p)) n++;
+  return n;
+}
+function repetida(p){ return /(.)\1\1/.test(p); }
+function secuencial(p){ const n=nm(p); return SEQ.some(s=>n.includes(s)); }
+function datosPersonales(p){
+  const n = nm(p), campos = [S.p.nombre.split(" ")[0], S.p.mascota, S.p.amigo, S.p.ciudad, S.p.colegio, S.p.hobby, S.p.nacimiento];
+  for (const v of campos){
+    const x = nm(v);
+    if (x.length >= 3 && n.includes(x)) return v;
+    const anio = (S.p.nacimiento||"").replace(/\D/g,"").slice(-4);
+    if (anio.length === 4 && n.includes(anio)) return S.p.nacimiento;
+  }
+  return null;
+}
+function esDebil(p){
+  if (p.length < 8) return true;
+  if (clases(p) < 2) return true;
+  if (nm(p).length < 10 && clases(p) === 1) return true;
+  if (DICC.includes(nm(p))) return true;
+  if (nm(p).length < 8) return true;
+  if (repetida(p) || secuencial(p)) return true;
+  return false;
+}
+function esPassphrase(p){ return p.length >= 14 && clases(p) >= 2 && !datosPersonales(p); }
+function fuerza(p){
+  if(!p) return {n:0,txt:"sin contraseña",col:"#EDE6D8"};
+  let s = 0;
+  if (p.length >= 8) s++; if (p.length >= 12) s++; if (p.length >= 16) s++;
+  s += Math.min(clases(p)-1, 2);
+  if (DICC.includes(nm(p)) || secuencial(p) || repetida(p)) s = Math.min(s, 1);
+  if (datosPersonales(p)) s = Math.min(s, 1);
+  const tab = [
+    {n:12,txt:"muy débil",col:"var(--danger)"},{n:28,txt:"débil",col:"var(--danger)"},
+    {n:52,txt:"aceptable",col:"var(--warn)"},{n:76,txt:"buena",col:"var(--accent)"},
+    {n:100,txt:"excelente",col:"var(--accent)"}
+  ];
+  const t = tab[Math.max(0, Math.min(s, 4))];
+  return { n: t.n, txt: s >= 3 ? (s >= 5 ? "excelente" : "buena") : t.txt, col: t.col };
+}
+function respuestasFiltradas(){ return [S.c.q1,S.c.q2,S.c.q3].map(x=>x.trim()).filter(x=>nm(x).length>=2); }
+function filtradaPorPost(){
+  const textoPlano = S.posts.map(nm).join("|");
+  return respuestasFiltradas().filter(a => textoPlano.includes(nm(a)));
+}
+function respuestasNoDerivables(){
+  const campos = [S.p.mascota, S.p.ciudad, S.p.amigo, S.p.nacimiento, S.p.hobby, S.p.colegio].map(nm);
+  return respuestasFiltradas().filter(a => !campos.some(v => v && (nm(a)===v || nm(a).includes(v)))).length;
+}
+const sobreEx = () => [
+  { id:"personal",    t:"Contraseña adivinable",     d:"Probar con los datos del personaje: nombre, mascota, ciudad, afición o cumpleaños." },
+  { id:"diccionario", t:"Ataque de diccionario",     d:"Pass the hash no hace falta: una lista de palabras comunes y patrones de teclado rompe contraseñas simples." },
+  { id:"reutilizar",  t:"Reutilización de contraseña",d:"Si la misma contraseña sirve en otro sitio, basta filtración ajena para entrar aquí." },
+  { id:"social",      t:"Ingeniería social",         d:"Leer el muro público y reconstruir las respuestas de las preguntas de seguridad." },
+  { id:"phishing",    t:"Correo trampa (phishing)",  d:"Enviar un mensaje que imita al colegio y hace entregar la contraseña." },
+  { id:"bruta",       t:"Fuerza bruta",              d:"Probar miles de combinaciones con un programa; sólo la longitud y el segundo factor lo frenan." },
+  { id:"sesion",      t:"Sesión abierta",            d:"Aprovechar un equipo compartido donde nadie cerró la sesión." }
+];
+function evaluar(id){
+  const P = { personal:()=>{const v=datosPersonales(S.c.pwd); return v?{e:true,m:"La contraseña contenía «"+v+"», un dato del propio personaje."}:{e:false,m:"Ningún dato público del personaje aparece dentro de la contraseña."};},
+    diccionario:()=>esDebil(S.c.pwd)?{e:true,m:"Longitud, variedad de caracteres o patrón insuficientes: cae con una lista de palabras."}:{e:false,m:"Contraseña larga y con mezcla de tipos: la lista de palabras no la alcanza."},
+    reutilizar:()=>S.c.reuse?{e:true,m:"La defensora admitió usar esa contraseña en otro servicio: cualquier filtración ajena la expone."}:{e:false,m:"Contraseña exclusiva para esta cuenta: no hay atajo desde otros servicios."},
+    social:()=>{const f=filtradaPorPost(); return f.length?{e:true,m:"La respuesta de seguridad «"+f[0]+"» aparece escrita en un post del muro."}:{e:false,m:"Ninguna respuesta de seguridad se deduce del muro ni del personaje."};},
+    phishing:()=>{ if(S.phish===null) return {e:null,m:""}; return S.phish.ok?{e:false,m:"La defensora identificó correctamente el correo legítimo."}:{e:true,m:"La defensora abrió el correo trampa y entregó la contraseña."}; },
+    bruta:()=>S.c.dosfa?{e:false,m:"El segundo factor bloquea el intento: la contraseña sola no basta para entrar."}:(S.c.pwd.length<=8?{e:true,m:"Contraseña corta y sin segundo factor: un programa la agota en poco tiempo."}:{e:false,m:"Contraseña larga: la fuerza bruta necesita demasiado tiempo y se abandona."}),
+    sesion:()=>(S.c.publico && !S.c.cerro)?{e:true,m:"Quedó sesión abierta en un equipo compartido: basta con volver a sentarse delante."}:{e:false,m:"No había sesión abierta en un equipo de uso común."} };
+  return (P[id]||(()=>({e:false,m:""})))();
+}
+
+/* ---------- plantillas ---------- */
+const F = (etiqueta, clave, val, ph) =>
+  `<label>${etiqueta}<input type="text" data-bind="${clave}" value="${esc(val??"")}" placeholder="${esc(ph||"")}"></label>`;
+
+function renderInicio(){
+  return `<div class="card">
+    <h2>Preparación de la pareja</h2>
+    <p class="sub">Mano ${S.mano} de 2. En la mano 2 se intercambian los papeles.</p>
+    <div class="grid g2">
+      ${F("Estudiante 1","jugador1",S.jugador1,"nombre")}
+      ${F("Estudiante 2","jugador2",S.jugador2,"nombre")}
+    </div>
+    <label>Papel del Estudiante 1 en esta mano
+      <select data-bind="rolDef">
+        <option value="1"${S.rolDef===1?" selected":""}>Defensor/a (crea y protege la cuenta)</option>
+        <option value="2"${S.rolDef===2?" selected":""}>Atacante (intenta entrar)</option>
+      </select>
+    </label>
+    <div class="callout"><b>Regla de oro del juego:</b> el objetivo no es hackear a una persona, es descubrir qué decisiones hacen vulnerable una cuenta. Quien defiende mejor gana más puntos.</div>
+    <div class="row"><button class="btn" onclick="ir('personaje')">Crear personaje ficticio →</button></div>
+  </div>`;
+}
+
+function renderPersonaje(){
+  const datos = [["nombre","Nombre del personaje (inventado)","Lina Márquez"],
+    ["ciudad","Ciudad","Bogotá"],["colegio","Colegio","Colegio Ekirayá"],
+    ["mascota","Nombre de la mascota","Cacao"],["amigo","Apodo del mejor amigo/a","Conejo"],
+    ["hobby","Afición o juego favorito","Dibujo digital"]];
+  return `<div class="card">
+    <h2>1 · Ficha del personaje</h2>
+    <p class="sub">Los rellena <b>${esc(def())}</b> como defensor/a. Son datos inventados: el atacante recibirá esta ficha y el muro.</p>
+    <div class="grid g2">
+      ${datos.map(d=>F(d[1],"p."+d[0],S.p[d[0]],d[2])).join("")}
+      <label>Edad<input type="text" data-bind="p.edad" value="${esc(S.p.edad)}" placeholder="13"></label>
+      <label>Fecha de nacimiento (inventada)<input type="text" data-bind="p.nacimiento" value="${esc(S.p.nacimiento)}" placeholder="12/03/2012"></label>
+    </div>
+    <div class="row">
+      <button class="btn ghost" onclick="sorprendeme()">Personaje aleatorio</button>
+      <button class="btn" onclick="ir('cuenta')">Configurar la cuenta →</button>
+    </div>
+  </div>`;
+}
+
+function informePwd(){
+  const f = fuerza(S.c.pwd), avisos = [];
+  const d = datosPersonales(S.c.pwd);
+  if (d) avisos.push("Contiene un dato del personaje («"+esc(d)+"»).");
+  if (S.c.pwd && esDebil(S.c.pwd)) avisos.push("Es corta, previsible o de un solo tipo de carácter.");
+  if (S.c.pwd && !avisos.length && S.c.pwd.length < 14) avisos.push("Funciona, pero una frase de 4 palabras sería más resistente.");
+  return { f, avisos };
+}
+function actualizarMeter(){
+  const m = document.getElementById("pwdMeter"), h = document.getElementById("pwdHint");
+  if (!m || !h) return;
+  const { f, avisos } = informePwd();
+  m.firstElementChild.style.width = f.n+"%";
+  m.firstElementChild.style.background = f.col;
+  h.innerHTML = "Fuerza estimada: <b>"+f.txt+"</b>"+(avisos.length?" · "+avisos.join(" · "):"");
+}
+function renderCuenta(){
+  const { f, avisos } = informePwd();
+  return `<div class="card">
+    <h2>2 · Credenciales de la cuenta</h2>
+    <p class="sub">Defensor/a: decide cómo proteger <b>${esc(S.p.nombre||"el personaje")}</b>. Recuerda: contraseña <b>ficticia</b>, nunca una que uses de verdad.</p>
+    <label>Contraseña de la cuenta simulada
+      <input type="password" data-bind="c.pwd" value="${esc(S.c.pwd)}" placeholder="cuatro palabras sin relación">
+    </label>
+    <div class="meter" id="pwdMeter"><i style="width:${f.n}%;background:${f.col}"></i></div>
+    <div class="hint" id="pwdHint">Fuerza estimada: <b>${f.txt}</b>${avisos.length?" · "+avisos.join(" · "):""}</div>
+    <div class="grid g2" style="margin-top:1rem">
+      <label>1. Nombre de mi mascota<input type="text" data-bind="c.q1" value="${esc(S.c.q1)}"></label>
+      <label>2. Ciudad donde nací<input type="text" data-bind="c.q2" value="${esc(S.c.q2)}"></label>
+      <label>3. Apodo de mi mejor amigo/a<input type="text" data-bind="c.q3" value="${esc(S.c.q3)}"></label>
+      ${F("Correo de recuperación", "c.correo", S.c.correo, "opcional")}
+    </div>
+    <label style="margin-top:1.4rem">Ajustes de seguridad</label>
+    ${chk("c.dosfa","Segundo factor (2FA) activado","Un código en el teléfono impide entrar aunque descubran la contraseña.")}
+    ${chk("c.reuse","Uso esta misma contraseña en otro servicio","Simplifica la vida… y el trabajo del atacante.")}
+    ${chk("c.gestor","Guardo las contraseñas en un gestor","Genera contraseñas únicas y largas.")}
+    ${chk("c.publico","El personaje abre sesión en un equipo de uso común","Biblioteca, salón de computación o tableta compartida.")}
+    ${chk("c.cerro","Cierra la sesión al terminar de usar ese equipo","Da igual si nunca hubo equipo compartido.")}
+    <div class="row"><button class="btn ghost" onclick="ir('personaje')">← Volver</button>
+      <button class="btn" onclick="ir('muro')">Publicar en el muro →</button></div>
+  </div>`;
+}
+function chk(clave,txt,sub){
+  return `<label class="check" style="font-weight:400">
+    <input type="checkbox" data-bind="${clave}"${S.c[clave]?" checked":""}>
+    <span>${txt}<small>${sub}</small></span></label>`;
+}
+
+function renderMuro(){
+  return `<div class="card">
+    <h2>3 · Muro del personaje</h2>
+    <p class="sub">Cuatro publicaciones inventadas. Todo lo que escribas aquí es <b>público para el atacante</b>. Es la parte de netiqueta: ¿qué se cuenta y qué no?</p>
+    ${S.posts.map((t,i)=>`<label>Publicación ${i+1}<textarea data-bind="posts.${i}" placeholder="ej. hoy en el cumpleaños de ${esc(S.p.nombre)} en ${esc(S.p.ciudad)}">${esc(t)}</textarea></label>`).join("")}
+    <div class="callout"><b>Pista didáctica:</b> un post inocente («mi perro Cacao cumplió 3 años») puede ser la respuesta a una pregunta de seguridad.</div>
+    <div class="row"><button class="btn ghost" onclick="ir('cuenta')">← Volver</button>
+      <button class="btn" onclick="ir('ataque')">Que empiece el ataque →</button></div>
+  </div>`;
+}
+
+function renderAtaque(){
+  const usados = S.intentos.map(i=>i.id);
+  if (S.hackeado) return `<div class="card"><h2>4 · Consola de ataque</h2>
+    <div class="callout r">La cuenta ya fue comprometida. <button class="btn" onclick="ir('fin')">Ver resultados →</button></div>${log()}</div>`;
+  const restantes = 3 - usados.length;
+  return `<div class="card">
+    <h2>4 · Consola de ataque</h2>
+    <p class="sub">Turno de <b>${esc(ata())}</b>. ${restantes} intento${restantes===1?"":"s"} restante${restantes===1?"":"s"}. Cada vector se usa una sola vez y la app decide con la matriz de reglas.</p>
+    <div class="callout" style="border-color:var(--warn);background:var(--warn-soft);color:#6a4f10">
+      <b>Dossier público del atacante:</b> ${esc(S.p.nombre)}, ${esc(S.p.edad)}, de ${esc(S.p.ciudad)}, estudia en ${esc(S.p.colegio)}, afición: ${esc(S.p.hobby)}, mascota: ${esc(S.p.mascota)}, amigo: ${esc(S.p.amigo)}, nació el ${esc(S.p.nacimiento)}.
+      <div style="margin-top:.5rem">Muro: ${S.posts.filter(p=>p.trim()).map(p=>"«"+esc(p)+"»").join(" ")||"(sin publicaciones)"}</div>
+    </div>
+    ${sobreEx().map(v=>`<div class="vec">
+        <div><h3>${v.t} ${usados.includes(v.id)?'<span class="pill g">usado</span>':""}</h3><p>${v.d}</p></div>
+        <button class="btn${usados.includes(v.id)?" ghost":""}" ${usados.includes(v.id)||restantes<=0?"disabled":""} onclick="atacar('${v.id}')">Usar vector</button>
+      </div>`).join("")}
+    ${log()}
+  </div>`;
+}
+function log(){
+  if(!S.intentos.length) return "";
+  return `<h3 style="margin:1.6rem 0 .4rem;font-size:1rem">Registro de intentos</h3><ul class="log">${
+    S.intentos.map(i=>`<li><b>${esc(i.t)}</b> — <span class="${i.e?"ko":"ok"}">${i.e?"Cuenta comprometida":"Bloqueado"}</span> · atacante +${i.pa} · defensa +${i.pd}<br><span style="color:var(--muted);font-size:.88rem">${esc(i.m)}</span></li>`).join("")}</ul>`;
+}
+
+function renderFin(){
+  const d = defensaPuntos();
+  const totDef = S.puntosA + d.total, totAta = S.puntosB;
+  return `<div class="card">
+    <h2>Resultados de la mano ${S.mano}</h2>
+    <div class="score">
+      <div><span class="pill g">Defensa</span><b>${totDef}</b>${esc(def())}<br><small style="color:var(--muted)">buenas prácticas + cuentas resistidas</small></div>
+      <div><span class="pill r">Ataque</span><b>${totAta}</b>${esc(ata())}<br><small style="color:var(--muted)">accesos obtenidos + reconocimiento</small></div>
+    </div>
+    ${S.mano<2 ? "" : `<div class="callout"><b>Marcador final de la pareja.</b> ${esc(S.jugador1)}: <b>${(S.totales[1]+0) + (defIdx()===1?totDef:totAta)}</b> pts · ${esc(S.jugador2)}: <b>${(S.totales[2]+0) + (ataIdx()===2?totAta:totDef)}</b> pts. Léelo en voz alta al docente y anotadlo en el tablero de la clase.</div>`}
+    ${S.hackeado ? `<div class="callout r"><b>La cuenta cayó.</b> No porque el atacante fuera listo, sino porque había un eslabón débil: ${esc(S.intentos.find(i=>i.e)?.m||"")}</div>`
+                : `<div class="callout"><b>La cuenta resistió los tres vectores.</b> Esto es seguridad: no existe la cuenta invulnerable, existen decisiones que hacen el ataque caro y poco rentable.</div>`}
+    <h3 style="margin:1.5rem 0 .2rem;font-size:1rem">Desglose de la defensa</h3>
+    <table><tbody>${d.items.map(i=>`<tr><td>${esc(i.t)}</td><td style="text-align:right;white-space:nowrap"><b>${i.p>0?"+"+i.p:i.p}</b></td></tr>`).join("")}
+      <tr><td>Buenas prácticas de protección</td><td style="text-align:right"><b>${d.total}</b></td></tr>
+      <tr><td>Cuentas resistidas (+3 por bloqueo)</td><td style="text-align:right"><b>${S.puntosA}</b></td></tr>
+      <tr><td><b>Total defensa</b></td><td style="text-align:right"><b>${totDef}</b></td></tr></tbody></table>
+    ${log()}
+    <div class="row">
+      ${S.mano<2?`<button class="btn" onclick="intercambiar()">Intercambiar roles (mano 2) →</button>`
+                :`<button class="btn" onclick="ir('inicio')">Nueva partida con otra pareja</button>`}
+      <button class="btn ghost" onclick="ir('ataque')">Volver al tablero</button>
+    </div>
+  </div>`;
+}
+
+/* ---------- puntuación ---------- */
+function defensaPuntos(){
+  const it = [];
+  const push = (t,p)=>{ if(p!==0) it.push({t,p}); };
+  push("Segundo factor (2FA) activado", S.c.dosfa?4:0);
+  push("Frase de contraseña larga y sin datos personales", esPassphrase(S.c.pwd)?3:0);
+  push("Contraseña exclusiva (sin reutilización)", !S.c.reuse?3:0);
+  push("Gestor de contraseñas", S.c.gestor?2:0);
+  push("Respuestas de seguridad no deducibles", respuestasNoDerivables());
+  push("Respuestas sin filtración en el muro", filtradaPorPost().length?0:2);
+  const exp = S.posts.filter(p=>nm(p).length>0 && (nm(p).includes(nm(S.p.nacimiento).slice(-4)) || nm(p).includes(nm(S.p.nombre)) || /\d{7,}/.test(p))).length;
+  push("Muro sin datos que identifican (4 posts)", 3 - Math.min(exp,3));
+  push("Correo de recuperación no deducible", S.c.correo && !nm(S.c.correo).includes(nm(S.p.nombre).slice(0,4))?2:0);
+  push("Sesión cerrada en equipo compartido", S.c.publico?(S.c.cerro?2:0):1);
+  return { items: it, total: it.reduce((a,b)=>a+b.p,0) };
+}
+
+/* ---------- acciones ---------- */
+function def(){ return S.rolDef===1 ? (S.jugador1||"Estudiante 1") : (S.jugador2||"Estudiante 2"); }
+function ata(){ return S.rolDef===1 ? (S.jugador2||"Estudiante 2") : (S.jugador1||"Estudiante 1"); }
+function ir(k){ pantalla = k; S.paso = k; salvar(); render(); window.scrollTo(0,0); }
+
+function atacar(id){
+  if (id === "phishing") return abrirPhishing();
+  const r = evaluar(id), v = sobreEx().find(x=>x.id===id);
+  registrar(id, v.t, r.e, r.m);
+}
+function registrar(id, t, e, m){
+  const pa = e ? 4 : 1, pd = e ? 0 : 3;
+  S.intentos.push({ id, t, e, m, pa, pd });
+  S.puntosB += pa; S.puntosA += pd;
+  if (e) S.hackeado = true;
+  salvar();
+  if (e || S.intentos.length >= 3) ir("fin"); else ir("ataque");
+}
+const PHISH = [
+  { legit:{ de:"biblioteca@colegioekiraya.edu.co", asunto:"Tu reserva está lista", cuerpo:"Hola:\n\nel libro «Cleo de 500» que reservaste está disponible para retirar en biblioteca hasta el viernes.\n\nUn saludo,\nEquipo de biblioteca" },
+    trap:{ de:"soporte@colegioekiraya-verificar.co", asunto:"AVISO FINAL: tu cuenta se cierra en 1 hora", cuerpo:"Estimatuto cliente:\n\nhemos detectado un acceso no autorizado. Para no perder tu cuenta, entra ahora en\n\n  https://colegioekiraya.verificar-cuenta-segura.co/login\n\ny escribe tu contraseña actual. Si no respondes en 1 hora la cuenta será eliminada.\n\nDepartamento de Seguridad" }},
+  { legit:{ de:"docencia@colegioekiraya.edu.co", asunto:"Recordatorio: feria de proyectos", cuerpo:"Buenas tardes:\n\nla feria de proyectos será el próximo jueves en el pabellón de tecnología. No hace falta que confirmes por correo, solo trae tu carteleta.\n\nGracias" },
+    trap:{ de:"pagos@colegio-ekiraya-reembolso.com", asunto:"Tienes un reembolso de $180.000 esperando", cuerpo:"Hola usuario:\n\nel reembolso de la mensualidad está retenido. Completa tus datos bancarios y tu contraseña en\n\n  http://bit.ly/reembolso-ekiraya\n\nantes de que caduque hoy mismo.\n\nAtentamente, Administración" }}
+];
+function abrirPhishing(){
+  const par = PHISH[Math.floor(Math.random()*PHISH.length)];
+  const trapIzq = Math.random() < .5;
+  const izq = trapIzq ? par.trap : par.legit, der = trapIzq ? par.legit : par.trap;
+  const card = (m,i)=>`<div class="mail pick" onclick="elegir(${trapIzq?i:(1-i)},${trapIzq?0:1})">
+      <div class="mhead"><b>De:</b> ${esc(m.de)}<br><b>Asunto:</b> ${esc(m.asunto)}</div>
+      <div class="mbody">${esc(m.cuerpo)}</div>
+      <div style="padding:.6rem .85rem;background:#F9F6EF;font-size:.84rem">Correo ${i+1} — clic para elegirlo como <b>el legítimo</b></div>
+    </div>`;
+  pantalla = "phishing";
+  render(`<div class="card"><h2>Vector: correo trampa (phishing)</h2>
+    <p class="sub">Turno de <b>${esc(def())}</b>, que decide. Uno de estos dos correos es legítimo y el otro intenta robar la contraseña. Elige el <b>legítimo</b>.</p>
+    ${card(izq,0)}${card(der,1)}
+    <div class="callout" style="border-color:var(--warn);background:var(--warn-soft);color:#6a4f10">Señales a revisar: dominio del remitente, urgencia o amenaza, faltas de ortografía, si pide contraseña y si el enlace coincide con el texto.</div>
+    <div class="row"><button class="btn ghost" onclick="ir('ataque')">Cancelar</button></div></div>`);
+}
+function elegir(esLegitimo, posicion){
+  S.phish = { ok: !!esLegitimo };
+  salvar();
+  const r = evaluar("phishing");
+  const v = sobreEx().find(x=>x.id==="phishing");
+  registrar("phishing", v.t, r.e, r.m);
+}
+function intercambiar(){
+  S.totales[defIdx()] = S.puntosA + defensaPuntos().total;
+  S.totales[ataIdx()] = S.puntosB;
+  const j1 = S.jugador1, j2 = S.jugador2;
+  const nuevo = vacio();
+  Object.assign(S, nuevo, { jugador1:j1, jugador2:j2, mano:2, rolDef: S.rolDef===1?2:1, totales:S.totales });
+  salvar(); ir("personaje");
+}
+function defIdx(){ return S.rolDef===1?1:2; }
+function ataIdx(){ return S.rolDef===1?2:1; }
+function sorprendeme(){
+  const N=["Sara Ortiz","Tomás Rivas","Nicolás Peña","Emma Castillo","Mateo Rojas","Lucía Herrera","Juan David Mora","Valentina Cruz"];
+  const C=["Bucaramanga","Medellín","Cali","Bogotá","Cartagena","Pereira","Manizales","Neiva"];
+  const M=["Cacao","Bruno","Nala","Conde","Luna","Firulais","Tofu","Maya"];
+  const A=["Conejo","Gato","Enano","Chispa","Tanque","Buda","Hormiga","Fideo"];
+  const H=["Robótica","Dibujo digital","Fútbol sala","Bailar","Esgrima","Cocinar","Astronomía","Videojuegos de terror"];
+  const d=new Date(2012+Math.floor(Math.random()*2), Math.floor(Math.random()*12), 1+Math.floor(Math.random()*28));
+  S.p={ nombre:N[Math.floor(Math.random()*N.length)], edad:String(12+Math.floor(Math.random()*3)),
+        ciudad:C[Math.floor(Math.random()*C.length)], colegio:"Colegio Ekirayá",
+        hobby:H[Math.floor(Math.random()*H.length)], mascota:M[Math.floor(Math.random()*M.length)],
+        amigo:A[Math.floor(Math.random()*A.length)],
+        nacimiento:d.getDate()+"/"+(d.getMonth()+1)+"/"+d.getFullYear() };
+  salvar(); render();
+}
+function reiniciar(){ if(confirm("¿Borrar toda la partida actual?")){ S=vacio(); localStorage.removeItem(KEY); ir("inicio"); } }
+
+/* ---------- impresión ---------- */
+function imprimir(){
+  const d = defensaPuntos();
+  document.getElementById("printRoot").innerHTML = `
+    <h2>Fortaleza Digital — ficha de partida</h2>
+    <p><b>Pareja:</b> ${esc(S.jugador1)} y ${esc(S.jugador2)} · <b>Mano ${S.mano}</b> · Defensor/a: ${esc(def())} · Atacante: ${esc(ata())}</p>
+    <h3>Personaje ficticio</h3>
+    ${["nombre","edad","ciudad","colegio","mascota","amigo","hobby","nacimiento"].map(k=>`<p><b>${k}:</b> <span class="ficha">${esc(S.p[k])}</span></p>`).join("")}
+    <h3>Muro</h3>${S.posts.map((p,i)=>`<p>Post ${i+1}: <span class="ficha">${esc(p)}</span></p>`).join("")}
+    <h3>Ajustes de seguridad declarados</h3>
+    <p>2FA: ${S.c.dosfa?"sí":"no"} · Reutilización: ${S.c.reuse?"sí":"no"} · Gestor: ${S.c.gestor?"sí":"no"} · Equipo compartido: ${S.c.publico?"sí":"no"} · Sesión cerrada: ${S.c.cerro?"sí":"no"}</p>
+    <h3>Intentos de ataque</h3>
+    <table><tr><th>Vector</th><th>Resultado</th><th>Motivo</th><th>Atac.</th><th>Defen.</th></tr>
+      ${S.intentos.map(i=>`<tr><td>${esc(i.t)}</td><td>${i.e?"Comprometida":"Bloqueado"}</td><td>${esc(i.m)}</td><td>${i.pa}</td><td>${i.pd}</td></tr>`).join("")||"<tr><td colspan=5>(sin intentos)</td></tr>"}</table>
+    <h3>Puntuación</h3>
+    <table><tbody>${d.items.map(i=>`<tr><td>${esc(i.t)}</td><td>${i.p}</td></tr>`).join("")}
+      <tr><td><b>Defensa</b></td><td><b>${S.puntosA+d.total}</b></td></tr>
+      <tr><td><b>Ataque</b></td><td><b>${S.puntosB}</b></td></tr></tbody></table>
+    <h3>Para el debriefing</h3>
+    <p>1. ¿Qué decisión concreta permitió (o bloqueó) el ataque más peligroso?</p>
+    <p>2. ¿Qué dato del muro sobró? Reescríbelo sin exponerte.</p>
+    <p>3. ¿Qué harías distinto con tu cuenta real, y cuál no?</p>`;
+  window.print();
+}
+
+/* ---------- render ---------- */
+function render(html){
+  const pasos = [["inicio","Pareja"],["personaje","1 · Personaje"],["cuenta","2 · Cuenta"],["muro","3 · Muro"],["ataque","4 · Ataque"],["fin","Resultados"]];
+  document.getElementById("rosterTag").innerHTML =
+    S.jugador1||S.jugador2 ? `${esc(def())} defiende · ${esc(ata())} ataca · Mano ${S.mano}/2` : "Sin partida guardada";
+  const nav = `<nav class="steps">${pasos.map(([k,t])=>
+    `<button class="${pantalla===k?"on":""}${S.intentos.length&&k==="ataque"?" done":""}" ${puedeVer(k)?"":"disabled"} onclick="ir('${k}')">${t}</button>`).join("")}</nav>`;
+  if (html === undefined){
+    const map = { inicio:renderInicio, personaje:renderPersonaje, cuenta:renderCuenta, muro:renderMuro, ataque:renderAtaque, fin:renderFin };
+    html = nav + (map[pantalla]||renderInicio)();
+  } else html = nav + html;
+  document.getElementById("app").innerHTML = html;
+  document.querySelectorAll("[data-bind]").forEach(el=>{
+    el.addEventListener(el.type==="checkbox"?"change":"input", ev=>{
+      const ruta = el.dataset.bind.split(".");
+      let o = S; while(ruta.length>1) o = o[ruta.shift()];
+      o[ruta[0]] = el.type==="checkbox" ? el.checked : el.value;
+      salvar();
+      if (el.dataset.bind === "c.pwd") actualizarMeter();
+    });
+  });
+}
+render();
+</script>
+</body>
+</html>
